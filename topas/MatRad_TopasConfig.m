@@ -27,7 +27,7 @@ classdef MatRad_TopasConfig < handle
         parallelRuns = false; %Starts runs in parallel
                 
         workingDir; %working directory for the simulation
-        
+
         label = 'matRad_plan';
         
         %Simulation parameters
@@ -111,8 +111,9 @@ classdef MatRad_TopasConfig < handle
             
             %Let's set some default commands taken from topas installation
             %instructions for mac & debain/ubuntu
-            if ispc %We assume topas is installed in wsl (since no windows version)
-                obj.topasExecCommand = 'wsl export TOPAS_G4_DATA_DIR=~/G4Data; ~/topas/bin/topas';
+            if ispc %We assume topas is installed in wsl (since no windows version)               
+                %obj.topasExecCommand = 'wsl export TOPAS_G4_DATA_DIR=~/G4DATA; ~/topas/bin/topas';
+                obj.topasExecCommand = 'wsl export TOPAS_G4_DATA_DIR=~/G4DATA; if ! [[ -d ~/topas/bin ]]; then export LD_LIBRARY_PATH=~/topas/libexternal; export G4LEDATA=~/G4DATA/G4EMLOW7.7; export G4NEUTRONHPDATA=~/G4DATA/G4NDL4.5; export G4LEVELGAMMADATA=~/G4DATA/PhotonEvaporation5.3; export G4RADIOACTIVEDATA=~/G4DATA/RadioactiveDecay5.3; export G4SAIDXSDATA=~/G4DATA/G4SAIDDATA2.0; export G4NEUTRONXSDATA=~/G4DATA/G4NEUTRONXS1.4; export G4PIIDATA=~/G4DATA/G4PII1.3; export G4REALSURFACEDATA=~/G4DATA/RealSurface1.0; export G4ABLADATA=~/G4DATA/G4ABLA3.0; export G4ENSDFSTATEDATA=~/G4DATA/G4ENSDFSTATE2.2; export G4TENDLDATA=~/G4DATA/G4TENDL1.3.2; fi; ';
             elseif ismac
                 obj.topasExecCommand = 'export TOPAS_G4_DATA_DIR=/Applications/G4Data; export QT_QPA_PLATFORM_PLUGIN_PATH=/Applications/topas/Frameworks; /Applications/topas/bin/topas';
             elseif isunix
@@ -347,7 +348,9 @@ classdef MatRad_TopasConfig < handle
                 % discard data if the current has unphysical values
                 idx = find([dataTOPAS.current] < 1);
                 dataTOPAS(idx) = [];
-                obj.matRad_cfg.dispWarning('Unphyiscal Values in Beam Current!');
+                if ~isempty(idx)
+                    obj.matRad_cfg.dispWarning('Unphyiscal Values in Beam Current!');
+                end
                 
                 historyCount(beamIx) = uint32(obj.fracHistories * nBeamParticlesTotal(beamIx) / obj.numOfRuns);
                 

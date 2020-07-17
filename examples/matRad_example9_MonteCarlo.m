@@ -44,6 +44,7 @@ pln.propDoseCalc.doseGrid.resolution.y = 5; % [mm]
 pln.propDoseCalc.doseGrid.resolution.z = 5; % [mm]
 %pln.propDoseCalc.doseGrid.resolution = ct.resolution;
 pln.propDoseCalc.airOffsetCorrection = true;
+pln.propDoseCalc.lateralCutOff = 1;
 
 % optimization settings
 pln.propOpt.optimizer       = 'IPOPT';

@@ -76,6 +76,7 @@ pln.propOpt.runSequencing = 0;
 pln.propDoseCalc.doseGrid.resolution.x = 3; % [mm]
 pln.propDoseCalc.doseGrid.resolution.y = 3; % [mm]
 pln.propDoseCalc.doseGrid.resolution.z = 3; % [mm]
+pln.propDoseCalc.lateralCutOff = 1;
 
 %% Generate Beam Geometry STF
 stf = matRad_generateStf(ct,cst,pln);

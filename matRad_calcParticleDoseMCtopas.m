@@ -103,7 +103,7 @@ for beamIx = 1:numel(stf)
     for runIx = 1:topasConfig.numOfRuns       
         fname = sprintf('%s_field%d_run%d',topasConfig.label,beamIx,runIx);
         %topasCall = sprintf('%s %s.txt',topasConfig.topasExecCommand,fname);
-        topasCall = sprintf('%s if ! [[ -d ~/topas/bin ]]; then ~/topas/topas %s.txt; else ~/topas/bin/topas %s.txt; fi',topasConfig.topasExecCommand,fname,fname);
+        topasCall = sprintf('%s %s.txt',topasConfig.topasExecCommand,fname,fname);
         if topasConfig.parallelRuns
             finishedFiles{runIx} = sprintf('%s.finished',fname);
             delete(finishedFiles{runIx});

@@ -22,6 +22,8 @@ classdef MatRad_TopasConfig < handle
     properties  
         matRad_cfg = MatRad_Config.instance(); %Instance of matRad configuration class
         
+        topasVersion = 33.1; %version of topas as number. Example: Write version '3.1.3' as 31.3
+        
         topasExecCommand; %Defaults will be set during construction according to TOPAS installation instructions and used system
         
         parallelRuns = false; %Starts runs in parallel
@@ -111,17 +113,45 @@ classdef MatRad_TopasConfig < handle
             
             %Let's set some default commands taken from topas installation
             %instructions for mac & debain/ubuntu
-            if ispc %We assume topas is installed in wsl (since no windows version)               
-                %obj.topasExecCommand = 'wsl export TOPAS_G4_DATA_DIR=~/G4DATA; ~/topas/bin/topas';
-                obj.topasExecCommand = 'wsl export TOPAS_G4_DATA_DIR=~/G4DATA; if ! [[ -d ~/topas/bin ]]; then export LD_LIBRARY_PATH=~/topas/libexternal; export G4LEDATA=~/G4DATA/G4EMLOW7.7; export G4NEUTRONHPDATA=~/G4DATA/G4NDL4.5; export G4LEVELGAMMADATA=~/G4DATA/PhotonEvaporation5.3; export G4RADIOACTIVEDATA=~/G4DATA/RadioactiveDecay5.3; export G4SAIDXSDATA=~/G4DATA/G4SAIDDATA2.0; export G4NEUTRONXSDATA=~/G4DATA/G4NEUTRONXS1.4; export G4PIIDATA=~/G4DATA/G4PII1.3; export G4REALSURFACEDATA=~/G4DATA/RealSurface1.0; export G4ABLADATA=~/G4DATA/G4ABLA3.0; export G4ENSDFSTATEDATA=~/G4DATA/G4ENSDFSTATE2.2; export G4TENDLDATA=~/G4DATA/G4TENDL1.3.2; fi; ';
-            elseif ismac
-                obj.topasExecCommand = 'export TOPAS_G4_DATA_DIR=/Applications/G4Data; export QT_QPA_PLATFORM_PLUGIN_PATH=/Applications/topas/Frameworks; /Applications/topas/bin/topas';
-            elseif isunix
-                obj.topasExecCommand = 'export TOPAS_G4_DATA_DIR=~/G4Data; ~/topas/bin/topas';
+            if obj.topasVersion > 33
+                if ispc %We assume topas is installed in wsl (since no windows version)
+                    obj.topasExecCommand = 'wsl export TOPAS_G4_DATA_DIR=~/G4Data; ~/topas/bin/topas';
+                elseif ismac
+                    obj.topasExecCommand = ['export TOPAS_G4_DATA_DIR=/Applications/G4Data; '...
+                        'export QT_QPA_PLATFORM_PLUGIN_PATH=/Applications/topas/Frameworks; '...
+                        '/Applications/topas/bin/topas'];
+                elseif isunix
+                    obj.topasExecCommand = 'export TOPAS_G4_DATA_DIR=~/G4Data; ~/topas/bin/topas';
+                else
+                    obj.topasExecCommand = '';
+                end
             else
-                obj.topasExecCommand = '';
-            end               
-                 
+                % Different setup is needed for older versions of topas
+                if ispc %We assume topas is installed in wsl (since no windows version)
+                    obj.topasExecCommand = ['wsl export TOPAS_G4_DATA_DIR=~/G4Data; '...
+                        'export LD_LIBRARY_PATH=~/topas/libexternal; '...
+                        'export G4LEDATA=~/G4Data/G4EMLOW7.7; '...
+                        'export G4NEUTRONHPDATA=~/G4Data/G4NDL4.5; '...
+                        'export G4LEVELGAMMADATA=~/G4Data/PhotonEvaporation5.3; '...
+                        'export G4RADIOACTIVEDATA=~/G4Data/RadioactiveDecay5.3; '...
+                        'export G4SAIDXSDATA=~/G4Data/G4SAIDDATA2.0; '...
+                        'export G4NEUTRONXSDATA=~/G4Data/G4NEUTRONXS1.4; '...
+                        'export G4PIIDATA=~/G4Data/G4PII1.3; '...
+                        'export G4REALSURFACEDATA=~/G4Data/RealSurface1.0; '...
+                        'export G4ABLADATA=~/G4Data/G4ABLA3.0; '...
+                        'export G4ENSDFSTATEDATA=~/G4Data/G4ENSDFSTATE2.2; '...
+                        'export G4TENDLDATA=~/G4Data/G4TENDL1.3.2; '...
+                        '~/topas/topas'];
+                elseif ismac
+                    obj.topasExecCommand = ['export TOPAS_G4_DATA_DIR=/Applications/G4Data; '...
+                        'export QT_QPA_PLATFORM_PLUGIN_PATH=/Applications/topas/Frameworks; '...
+                        '/Applications/topas/topas'];
+                elseif isunix
+                    obj.topasExecCommand = 'export TOPAS_G4_DATA_DIR=~/G4Data; ~/topas/topas';
+                else
+                    obj.topasExecCommand = '';
+                end
+            end
         end
         
 

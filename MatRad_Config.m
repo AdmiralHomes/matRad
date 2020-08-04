@@ -66,6 +66,7 @@ classdef MatRad_Config < handle
             obj.propMC.direct_defaultHistories = 2e4;
             %obj.propMC.default_photon_engine = 'ompMC';
             obj.propMC.default_proton_engine = 'MCsquare';
+            obj.propMC.default_carbon_engine = 'TOPAS';
             obj.propMC.topas_defaultNumBatches = 5;
             
             obj.disableGUI = false;

@@ -2,7 +2,7 @@ classdef MatRad_MCemittanceBaseData
     % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % MatRad_MCemmitanceBaseData This is the superclass for MonteCarlo base
     % data calculation
-    % 
+    %
     %
     %
     %
@@ -35,7 +35,7 @@ classdef MatRad_MCemittanceBaseData
     
     properties (SetAccess = private)
         stfCompressed   %measure whether function has additional info about
-                        %the stf
+        %the stf
         problemSigma    % = 1, when there was a problem calculating sigma
         energyIndex     %Indices of calculated energies
     end
@@ -142,7 +142,7 @@ classdef MatRad_MCemittanceBaseData
             %function to calculate mean energy and energy spread used by
             %mcSquare for given energy
             
-            %Considers air distance from nozzle to phantom surface 
+            %Considers air distance from nozzle to phantom surface
             %used in the machine data. 0 means fitted to vacuum simulations
             %with surface at isocenter
             if ~isfield(obj.machine.meta, 'fitAirOffset')
@@ -167,7 +167,7 @@ classdef MatRad_MCemittanceBaseData
             r80ind = r80ind - 1;
             r80 = interp1(newDose(maxI + r80ind - 1:maxI + r80ind + 1), ...
                 newDepths(maxI + r80ind - 1:maxI + r80ind + 1), 0.8 * maxV);% ...
-                % + obj.machine.data(i).offset + dR;
+            % + obj.machine.data(i).offset + dR;
             
             %Correct r80 with dR
             r80 = r80 + dR + obj.machine.data(i).offset;
@@ -191,28 +191,43 @@ classdef MatRad_MCemittanceBaseData
             
             %calcualte mean energy used my mcSquare with a formula fitted
             %to TOPAS data
-            meanEnergy = @(x) 5.762374661332111e-20 * x^9 - 9.645413625310569e-17 * x^8 + 7.073049219034644e-14 * x^7 ...
-                - 2.992344292008054e-11 * x^6 + 8.104111934547256e-09 * x^5 - 1.477860913846939e-06 * x^4 ...
-                + 1.873625800704108e-04 * x^3 - 1.739424343114980e-02 * x^2 + 1.743224692623838e+00 * x ...
-                + 1.827112816899668e+01;
-            mcDataEnergy.MeanEnergy = meanEnergy(r80);
-            
-            %calculate energy straggling using formulae deducted from paper
-            %"An analytical approximation of the Bragg curve for therapeutic
-            %proton beams" by T. Bortfeld et al.
-            totalSigmaSq = ((w50) / 6.14)^2;
-            
-            totalSpreadSq = @(x) 2.713311945114106e-20 * x^9 - 4.267890251195303e-17 * x^8 + 2.879118523083018e-14 * x^7 ...
-                - 1.084418008735459e-11 * x^6 + 2.491796224784373e-09 * x^5 - 3.591462823163767e-07 * x^4 ...
-                + 3.232810400304542e-05 * x^3 - 1.584729282376364e-03 * x^2 + 5.228413840446568e-02 * x ...
-                - 6.547482267336220e-01;
-            
-            % use formula deducted from Bragg Kleeman rule to calcuate
-            % energy straggling given the total sigma and the range
-            % straggling
-            energySpread = (totalSigmaSq - totalSpreadSq(r80)) / (0.022^2 * 1.77^2 * mcDataEnergy.MeanEnergy^(2*1.77-2));
-            energySpread(energySpread < 0) = 0;
-            mcDataEnergy.EnergySpread = sqrt(energySpread);
+            switch obj.machine.meta.radiationMode
+                case 'protons'
+                    meanEnergy = @(x) 5.762374661332111e-20 * x^9 - 9.645413625310569e-17 * x^8 + 7.073049219034644e-14 * x^7 ...
+                        - 2.992344292008054e-11 * x^6 + 8.104111934547256e-09 * x^5 - 1.477860913846939e-06 * x^4 ...
+                        + 1.873625800704108e-04 * x^3 - 1.739424343114980e-02 * x^2 + 1.743224692623838e+00 * x ...
+                        + 1.827112816899668e+01;
+                    mcDataEnergy.MeanEnergy = meanEnergy(r80);
+                    
+                    %calculate energy straggling using formulae deducted from paper
+                    %"An analytical approximation of the Bragg curve for therapeutic
+                    %proton beams" by T. Bortfeld et al.
+                    totalSigmaSq = ((w50) / 6.14)^2;
+                    
+                    totalSpreadSq = @(x) 2.713311945114106e-20 * x^9 - 4.267890251195303e-17 * x^8 + 2.879118523083018e-14 * x^7 ...
+                        - 1.084418008735459e-11 * x^6 + 2.491796224784373e-09 * x^5 - 3.591462823163767e-07 * x^4 ...
+                        + 3.232810400304542e-05 * x^3 - 1.584729282376364e-03 * x^2 + 5.228413840446568e-02 * x ...
+                        - 6.547482267336220e-01;
+                    
+                    % use formula deducted from Bragg Kleeman rule to calcuate
+                    % energy straggling given the total sigma and the range
+                    % straggling
+                    energySpread = (totalSigmaSq - totalSpreadSq(r80)) / (0.022^2 * 1.77^2 * mcDataEnergy.MeanEnergy^(2*1.77-2));
+                    energySpread(energySpread < 0) = 0;
+                    mcDataEnergy.EnergySpread = sqrt(energySpread);
+                case 'carbon'
+                    A = 12;
+                    Z = 6;
+                    mcDataEnergy.meanEnergy = (r80*Z^2/A/alpha)^0.5;
+                    mcDataEnergy.EnergySpread = 3;
+                case 'helium'
+                    A = 4;
+                    Z = 2;
+                    mcDataEnergy.meanEnergy = (r80*Z^2/A/alpha)^0.5;
+                    mcDataEnergy.EnergySpread = 3; 
+                otherwise
+                    error('not implemented')
+            end
         end
         
         function mcDataOptics = fitBeamOpticsForEnergy(obj,energyIx, focusIndex)
@@ -225,7 +240,7 @@ classdef MatRad_MCemittanceBaseData
             SAD = obj.machine.meta.SAD;
             z     = -(obj.machine.data(i).initFocus.dist(focusIndex,:) - SAD);
             sigma = obj.machine.data(i).initFocus.sigma(focusIndex,:);
-            sigmaSq = sigma.^2;                        
+            sigmaSq = sigma.^2;
             
             %fit Courant-Synder equation to data using ipopt, formulae
             %given in mcSquare documentation
@@ -303,6 +318,6 @@ classdef MatRad_MCemittanceBaseData
             
             save(strcat('../../', machineName, '.mat'),'machine');
         end
-    end 
+    end
 end
 

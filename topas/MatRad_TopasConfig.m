@@ -34,7 +34,7 @@ classdef MatRad_TopasConfig < handle
         
         %Simulation parameters
         numThreads = 0; %number of used threads, 0 = max number of threads (= num cores)
-        numOfRuns = 5; %Default number of runs / batches
+        numOfRuns = 1; %Default number of runs / batches
         modeHistories = 'num'; %'frac';
         fracHistories = 1e-4; %Fraction of histories to compute
         numHistories = 1e6; %Number of histories to compute        
@@ -357,6 +357,9 @@ classdef MatRad_TopasConfig < handle
                                 
                             else
                                 dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).MeanEnergy;
+                                if ~(0.95 * stf.ray.energy(ixTmp) < selectedData(ixTmp).MeanEnergy && selectedData(ixTmp).MeanEnergy < 1.05 * stf.ray.energy(ixTmp))
+                                    dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).NominalEnergy;
+                                end
                                 dataTOPAS(cutNumOfBixel).energySpread = selectedData(ixTmp).EnergySpread;
                                 dataTOPAS(cutNumOfBixel).spotSize = selectedData(ixTmp).SpotSize1x;
                                 dataTOPAS(cutNumOfBixel).divergence = selectedData(ixTmp).Divergence1x;
@@ -427,7 +430,7 @@ classdef MatRad_TopasConfig < handle
                         fprintf(fileID,'u:Sim/ParticleMass = 12.0\n');
                         
                         particleA = 12;
-                        particleZ = 16;
+                        particleZ = 6;
                         
                         modules = obj.modules_GenericIon;
                     %{    

@@ -89,6 +89,13 @@ if strcmp(pln.radiationMode,'protons')
         case 'TOPAS'
         dij = matRad_calcParticleDoseMCtopas(ct,stf,pln,cst,nHistories,calcDoseDirect);
     end
+elseif strcmp(pln.radiationMode,'carbon')
+    if ~isfield(pln,'propMC') || ~isfield(pln.propMC,'carbon_engine')
+        pln.propMC.carbon_engine = matRad_cfg.propMC.default_carbon_engine;
+    end
+        dij = matRad_calcParticleDoseMCtopas(ct,stf,pln,cst,nHistories,calcDoseDirect);
+
+    
 else
     matRad_cfg.dispError('Forward MC only implemented for protons.');
 end

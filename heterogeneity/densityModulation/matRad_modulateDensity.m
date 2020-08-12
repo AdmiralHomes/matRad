@@ -35,7 +35,7 @@ global matRad_cfg;
 matRad_cfg =  MatRad_Config.instance();
 
 if nargin < 4
-    mode = 'poisson';
+    mode = 'binominal';
 end
 
 % get all unique lung indices from lung segmentations
@@ -56,8 +56,8 @@ if strcmp(mode, 'binominal')
     D = ct.resolution.y;
 
     n = round(D/d);
-
-    ct.cube{1}(lungIdx) = binornd(n,pLung,[length(lungIdx),1]);
+    
+    ct.cube{1}(lungIdx) =  matRad_sampleBino(n,pLung,length(lungIdx));
     
 elseif strcmp(mode, 'poisson')
     

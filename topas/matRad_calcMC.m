@@ -1,4 +1,4 @@
-function [resultGUI,resultGUI_MC] = matRad_calcMC(energy)
+function [resultGUI,resultGUI_MC] = matRad_calcMC(ct,cst,pln,energy,energyspread)
 % matRad example script
 %
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -14,23 +14,7 @@ function [resultGUI,resultGUI_MC] = matRad_calcMC(energy)
 %
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%matRad_rc
-
-% load patient data, i.e. ct, voi, cst
-%load TG119.mat
-load BOXPHANTOM.mat
-%load LIVER.mat
-%load PHANTOM_control.mat; ct.resolution.x = 2; ct.resolution.y = 2; ct.resolution.z = 2;
-
-% meta information for treatment plan
-pln.radiationMode   = 'carbon';     % either photons / protons / carbon
-pln.machine         = 'Generic';
-%pln.machine         = 'generic_TOPAS_cropped';
-%pln.radiationMode   = 'protons';
-
 pln.numOfFractions  = 1;
-
-% beam geometry settings
 pln.propStf.bixelWidth      = 50; % [mm] / also corresponds to lateral spot spacing for particles
 pln.propStf.longitudinalSpotSpacing = 50;
 pln.propStf.gantryAngles    = 0; % [?] 
@@ -47,7 +31,6 @@ pln.propDoseCalc.doseGrid.resolution.z = 5; % [mm]
 pln.propDoseCalc.airOffsetCorrection = true;
 pln.propDoseCalc.lateralCutOff = 1;
 
-% optimization settings
 pln.propOpt.optimizer       = 'IPOPT';
 pln.propOpt.bioOptimization = 'none'; % none: physical optimization;             const_RBExD; constant RBE of 1.1;
                                       % LEMIV_effect: effect-based optimization; LEMIV_RBExD: optimization of RBE-weighted dose
@@ -55,26 +38,30 @@ pln.propOpt.runDAO          = false;  % 1/true: run DAO, 0/false: don't / will b
 pln.propOpt.runSequencing   = false;  % 1/true: run sequencing, 0/false: don't / will be ignored for particles and also triggered by runDAO below
 
 pln.propMC.proton_engine = 'TOPAS';
-%pln.propMC.proton_engine = 'MCsquare';
+
+
+
 
 %% generate steering file
 stf = matRad_generateStf(ct,cst,pln);
 
-%stf.ray = struct; 
-stf.ray.rayPos_bev = [0,0,0];
-stf.ray.targetPoint_bev = [0,10000,0];
-stf.ray.rayPos = [0,0,0];
-stf.ray.targetPoint = [0,10000,0];
+% stf.ray = struct; 
+% stf.ray.rayPos_bev = [0,0,0];
+% stf.ray.targetPoint_bev = [0,10000,0];
+% stf.ray.rayPos = [0,0,0];
+% stf.ray.targetPoint = [0,10000,0];
 stf.ray.energy = energy;
-stf.ray.focusIx = 1;
+stf.ray.focusIx = stf.ray.focusIx(1);
 stf.ray.rangeShifter = struct;
 stf.ray.rangeShifter.ID = 0;
 stf.ray.rangeShifter.eqThickness = 0;
 stf.ray.rangeShifter.sourceRashiDistance = 0;
-
+% 
+stf.numOfRays = 1;
 stf.totalNumOfBixels = 1;
 stf.numOfBixelsPerRay = 1;
 
+stf.energySpread = energyspread;
 %% dose calculation
 dij = matRad_calcParticleDose(ct, stf, pln, cst);
 %resultGUI = matRad_calcCubes(ones(dij.totalNumOfBixels,1),dij);

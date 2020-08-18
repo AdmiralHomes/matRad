@@ -31,6 +31,7 @@ classdef MatRad_MCemittanceBaseData
         monteCarloData  %MC Phase space data struct
         selectedFocus   %array containing selected focus indices per energy
         FWHMatIso       %array containing FWHM values at iscenter for every energy
+        energyspread    %custom energy spread
     end
     
     properties (SetAccess = private)
@@ -54,6 +55,11 @@ classdef MatRad_MCemittanceBaseData
                 obj.stfCompressed = true;
             end
             
+            if isfield(stf,'energySpread')
+                obj.energyspread = stf.energySpread;
+            else
+                obj.energyspread = 3;
+            end
             obj.machine = machine;
             obj.problemSigma = false;
             obj.selectedFocus = ones(numel(machine.data),1) * NaN;
@@ -218,11 +224,11 @@ classdef MatRad_MCemittanceBaseData
                 case 'carbon'
                     meanEnergy = @(x,A,Z,alpha,p) (x*Z^2/A/alpha)^(1/p);
                     mcDataEnergy.meanEnergy = meanEnergy(r80,12,6,0.022,1.77);
-                    mcDataEnergy.EnergySpread = 3;
+                    mcDataEnergy.EnergySpread = obj.energyspread; 
                 case 'helium'
                     meanEnergy = @(x,A,Z,alpha,p) (x*Z^2/A/alpha)^(1/p);
                     mcDataEnergy.meanEnergy = meanEnergy(r80,4,2,0.022,1.77);
-                    mcDataEnergy.EnergySpread = 3; 
+                    mcDataEnergy.EnergySpread = obj.energyspread; 
                 otherwise
                     error('not implemented')
             end

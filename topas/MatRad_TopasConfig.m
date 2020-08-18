@@ -46,6 +46,7 @@ classdef MatRad_TopasConfig < handle
                             'material',0,...
                             'maxinterruptedhistories',1000);
         
+        
         minRelWeight = .0001; %Threshold for discarding beamlets. 0 means all weights are being considered, can otherwise be assigned to min(w)
               
         useOrigBaseData = false; % base data of the original matRad plan will be used?
@@ -370,8 +371,8 @@ classdef MatRad_TopasConfig < handle
                                 dataTOPAS(cutNumOfBixel).focusFWHM = selectedData(ixTmp).initFocus.SisFWHMAtIso(stf(beamIx).ray(rayIx).focusIx(bixelIx));
                                 
                             else
-                                dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).MeanEnergy;
-                                if ~(0.95 * stf.ray.energy(ixTmp) < selectedData(ixTmp).MeanEnergy && selectedData(ixTmp).MeanEnergy < 1.05 * stf.ray.energy(ixTmp))
+                                dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).meanEnergy;
+                                if ~(0.95 * stf.ray.energy(ixTmp) < selectedData(ixTmp).meanEnergy && selectedData(ixTmp).meanEnergy < 1.05 * stf.ray.energy(ixTmp))
                                     dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).NominalEnergy;
                                 end
                                 dataTOPAS(cutNumOfBixel).energySpread = selectedData(ixTmp).EnergySpread;

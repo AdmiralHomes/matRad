@@ -48,18 +48,16 @@ classdef MatRad_MCemittanceBaseData
             
             %stfCompressed states whether monteCarloData are calculated for
             %all energies (false) or only for energies which exist in given
-            %stf. If function is called without stf stfCompressed = false.
+            %stf. If function is called without stf stfCompressed = false.           
             if nargin < 2
                 obj.stfCompressed = false;
             else
                 obj.stfCompressed = true;
             end
             
-            if isfield(stf,'energySpread')
-                obj.energyspread = stf.energySpread;
-            else
-                obj.energyspread = 3;
-            end
+            matRad_cfg = MatRad_Config.instance();
+            
+            obj.energyspread = matRad_cfg.propMC.defaultCarbonEnergySpread;
             obj.machine = machine;
             obj.problemSigma = false;
             obj.selectedFocus = ones(numel(machine.data),1) * NaN;

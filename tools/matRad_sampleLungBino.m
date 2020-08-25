@@ -1,4 +1,4 @@
-function X = matRad_sampleBino(n,p,numOfSamples)
+function X = matRad_sampleLungBino(n,p,lungDensity,numOfLungVoxels)
 % matRad function for binomial sampling
 %
 % call
@@ -7,7 +7,8 @@ function X = matRad_sampleBino(n,p,numOfSamples)
 % input
 %   n:              number of independent experiments
 %   p:              probability (between 0 and 1)
-%   numOfSamples:   number of samples for output
+%   numOfSamples:   number of samples for output, can also be an array
+%                   [numOfSamples x M]
 %
 % output
 %   X:              binomial samples
@@ -28,7 +29,13 @@ function X = matRad_sampleBino(n,p,numOfSamples)
 global matRad_cfg;
 matRad_cfg =  MatRad_Config.instance();
 
-ndimsOut = numel(numOfSamples);
+if ~isscalar(numOfLungVoxels)
+    sampleOut1 = numOfLungVoxels(1);
+    sampleOut2 = numOfLungVoxels(2);
+else
+    sampleOut1 = numOfLungVoxels(1);
+    sampleOut2 = 1;
+end
 
 if ~mod(n,1) == 0
     error('n has to be integer');
@@ -36,10 +43,12 @@ elseif ~isscalar(n)
     error('no n arrays supported');
 elseif ~(all(p <= 1) && all(p >= 0))
    error('p must be between 0 and 1'); 
-elseif ~(numOfSamples == numel(p))
+elseif ~isscalar(p) && ~(sampleOut1 == numel(p))
     error('p must have numOfSamples entries')
 end
 
-X = sum(rand([numOfSamples,n]) < p', ndimsOut+1);
+X = sum(rand([sampleOut1,sampleOut2,n]) < p, 3);
+
+X = X' / n * lungDensity;
 
 end

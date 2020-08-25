@@ -371,8 +371,8 @@ classdef MatRad_TopasConfig < handle
                                 dataTOPAS(cutNumOfBixel).focusFWHM = selectedData(ixTmp).initFocus.SisFWHMAtIso(stf(beamIx).ray(rayIx).focusIx(bixelIx));
                                 
                             else
-                                dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).meanEnergy;
-                                if ~(0.95 * stf.ray.energy(ixTmp) < selectedData(ixTmp).meanEnergy && selectedData(ixTmp).meanEnergy < 1.05 * stf.ray.energy(ixTmp))
+                                dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).MeanEnergy;
+                                if ~(0.95 * stf.ray.energy(ixTmp) < selectedData(ixTmp).MeanEnergy && selectedData(ixTmp).MeanEnergy < 1.05 * stf.ray.energy(ixTmp))
                                     dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).NominalEnergy;
                                 end
                                 dataTOPAS(cutNumOfBixel).energySpread = selectedData(ixTmp).EnergySpread;

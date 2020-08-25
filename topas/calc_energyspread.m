@@ -9,48 +9,47 @@ load BOXPHANTOM_LUNG.mat
 cd A:\matRad_Noa\topas\energyspreadHIT
 
 energy = [machine.data(67).energy, ...
-    machine.data(152).energy, ...
-    machine.data(233).energy];
+    machine.data(190).energy];
 
-energySpread = [0, 1.5, 3, 4.5];
+energySpread = [0, 1.5, 3];
 %%
-for i = energy
-    for j = energySpread
-        if ~isfile(['energySpread_',num2str(j),'_',num2str(round(i)),'.mat'])
-            [resultGUI,resultGUI_MC] = matRad_calcMC(ct,cst,pln,i,j);
-            cd A:\matRad_Noa\topas\energyspreadHIT
-            save(['energySpread_',num2str(10*j),'_',num2str(round(i)),'.mat'],'resultGUI*')
-            clear resultGUI*
-        end
+% for i = energy
+%     for j = energySpread
+%         if ~isfile(['energySpread_',num2str(j),'_',num2str(round(i)),'.mat'])
+%             [resultGUI,resultGUI_MC] = matRad_calcMC(ct,cst,pln,i,j);
+%             cd A:\matRad_Noa\topas\energyspreadHIT
+%             save(['energySpread_',num2str(10*j),'_',num2str(round(i)),'.mat'],'resultGUI*')
+%             clear resultGUI*
+%         end
+%     end
+% end
+% 
+% pause(10)
+% system('shutdown -s')
+%%
+% 
+for j = 1:length(energySpread)
+    for i = 1:length(energy)
+        load(['energySpread_',num2str(10*energySpread(j)),'_',num2str(round(energy(i))),'.mat'],'resultGUI*')
+        
+        matRadDose{j,i} = matRad_calcIDD(resultGUI.physicalDose,'y');
+        TopasDose{j,i} = matRad_calcIDD(resultGUI_MC.physicalDose,'y');
     end
 end
 
-pause(10)
-system('shutdown -s')
 %%
-% 
-% for j = 1:length(energySpread)
-%     for i = 1:length(energy)
-%         load(['energySpread_',num2str(energySpread(j)),'_',num2str(round(energy(i))),'.mat'],'resultGUI*')
-%         
-%         matRadDose{j,i} = matRad_calcIDD(resultGUI.physicalDose,'y');
-%         TopasDose{j,i} = matRad_calcIDD(resultGUI_MC.physicalDose,'y');
-%     end
-% end
-% 
-% %%
-% 
-% for i = 1:length(energy)
-%     figure
-%     plot(matRadDose{j,i},'DisplayName','matRad')
-%     hold on
-%     for j = 1:length(energySpread)
-%         txt = ['EnergySpread = ',num2str(energySpread(j))];
-%         plot(TopasDose{j,i},'DisplayName',txt)
-%     end
-%     legend show
-%     title(['Energy = ',num2str(energy(i))])
-% end
+
+for i = 1:length(energy)
+    figure
+    plot(matRadDose{j,i},'DisplayName','matRad')
+    hold on
+    for j = 1:length(energySpread)
+        txt = ['EnergySpread = ',num2str(energySpread(j))];
+        plot(TopasDose{j,i},'DisplayName',txt)
+    end
+    legend show
+    title(['Energy = ',num2str(energy(i))])
+end
 
 %%
 % alpha = 0.022;

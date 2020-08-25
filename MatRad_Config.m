@@ -60,6 +60,7 @@ classdef MatRad_Config < handle
             
             obj.propOpt.defaultMaxIter = 500;           
             
+            obj.propMC.defaultCarbonEnergySpread = 3; %[%]
             obj.propMC.ompMC_defaultHistories = 1e6;
             obj.propMC.ompMC_defaultOutputVariance = false;
             obj.propMC.MCsquare_defaultHistories = 1e6;
@@ -87,11 +88,13 @@ classdef MatRad_Config < handle
             
             obj.propOpt.defaultMaxIter = 10;
             
+            obj.propMC.defaultCarbonEnergySpread = 3; %[%]
             obj.propMC.ompMC_defaultHistories = 100;
             obj.propMC.MCsquare_defaultHistories = 100;
             obj.propMC.direct_defaultHistories = 100;
             %obj.propMC.default_photon_engine = 'ompMC';
             obj.propMC.default_proton_engine = 'MCsquare'; 
+            obj.propMC.default_carbon_engine = 'TOPAS';            
             obj.propMC.topas_defaultNumBatches = 5;
             
             obj.disableGUI = true;

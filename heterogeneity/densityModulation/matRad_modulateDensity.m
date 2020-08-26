@@ -48,16 +48,20 @@ lungIdx = unique([lungIdx{:}]);
 
 if strcmp(mode, 'binominal')
     
-    pLung = 0.26;
+    pLung = ct.cube{1}(lungIdx);
+    
+    %pLung = 0.26;
+    %pLung = 0.4;
     rhoLung = 1.05;
     %rhoWater = 1;
     %rhoMean = rhoLung * pLung;
-    d = Pmod/1000 / (1-pLung) / rhoLung;
+    d = Pmod/1000 ./ (1-pLung) / rhoLung;
     D = ct.resolution.y;
 
-    n = round(D/d);
+    n = round(D./d);
     
-    ct.cube{1}(lungIdx) =  matRad_sampleBino(n,pLung,length(lungIdx));
+    ct.cube{1}(lungIdx) =  matRad_sampleLungBino(n,pLung,rhoLung,length(lungIdx));
+    ct.cubeHU{1}(lungIdx) = 1024*(ct.cube{1}(lungIdx)-1);
     
 elseif strcmp(mode, 'poisson')
     
@@ -84,5 +88,5 @@ elseif strcmp(mode, 'poisson')
     
 end
 % plot histogram of the the lung density distribution
-figure, histogram(ct.cube{1}(lungIdx))
+% figure, histogram(ct.cube{1}(lungIdx))
 end

@@ -39,16 +39,23 @@ end
 
 if ~mod(n,1) == 0
     error('n has to be integer');
-elseif ~isscalar(n)
-    error('no n arrays supported');
 elseif ~(all(p <= 1) && all(p >= 0))
-   error('p must be between 0 and 1'); 
+    error('p must be between 0 and 1');
 elseif ~isscalar(p) && ~(sampleOut1 == numel(p))
-    error('p must have numOfSamples entries')
+    error('p array must have numOfSamples entries')
+elseif ~isscalar(n) && ~(sampleOut1 == numel(n))
+    error('n array must have numOfSamples entries')
 end
 
-X = sum(rand([sampleOut1,sampleOut2,n]) < p, 3);
+if isscalar(n)
+    X = sum(rand([sampleOut1,sampleOut2,n]) < p, 3);
+else
+    X = zeros(numel(n),1);
+    for i = 1:numel(n)
+        X(i) = sum(rand([sampleOut2,n(i)]) < p(i), 2);
+    end
+end
 
-X = X' / n * lungDensity;
+X = X ./ n * lungDensity;
 
 end

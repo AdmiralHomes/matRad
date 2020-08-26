@@ -38,30 +38,45 @@ if nargin < 4
     mode = 'binominal';
 end
 
+% get all unique tumor indices from PTV segmentations
+idx = strcmp(cst(:,2),'PTV');
+tumorIdx = [cst{idx,4}];
+tumorIdx = unique(vertcat(tumorIdx{:}));
+
 % get all unique lung indices from lung segmentations
 idx = contains(cst(:,2),'Lung');
 if sum(idx)==0
     matRad_cfg.dispError('No lung segmentation found in cst.\n');
 end
 lungIdx = [cst{idx,4}];
-lungIdx = unique([lungIdx{:}]);
+lungIdx = unique(vertcat(lungIdx{:}));
+
+% setting overlaps
+lungIdx = lungIdx(~ismember(lungIdx,tumorIdx));
+
+% calculate ct cube from cubeHU if not specified
+if ~isfield(ct,'cube')
+    ct.cube{1} = ct.cubeHU{1} / 1024 + 1;
+end
 
 if strcmp(mode, 'binominal')
     
     pLung = ct.cube{1}(lungIdx);
-    
+    if sum(pLung > 1)
+        lungIdx = lungIdx(pLung <= 1);
+        pLung = ct.cube{1}(lungIdx);
+    end
+     
     %pLung = 0.26;
     %pLung = 0.4;
     rhoLung = 1.05;
-    %rhoWater = 1;
-    %rhoMean = rhoLung * pLung;
+    
     d = Pmod/1000 ./ (1-pLung) / rhoLung;
     D = ct.resolution.y;
-
+    
     n = round(D./d);
     
     ct.cube{1}(lungIdx) =  matRad_sampleLungBino(n,pLung,rhoLung,length(lungIdx));
-    ct.cubeHU{1}(lungIdx) = 1024*(ct.cube{1}(lungIdx)-1);
     
 elseif strcmp(mode, 'poisson')
     
@@ -87,6 +102,9 @@ elseif strcmp(mode, 'poisson')
     ct.cube{1}(lungIdx) = discretize(rand(numel(lungIdx),1),P);
     
 end
+
+ct.cubeHU{1}(lungIdx) = 1024*(ct.cube{1}(lungIdx)-1);
+
 % plot histogram of the the lung density distribution
 % figure, histogram(ct.cube{1}(lungIdx))
 end

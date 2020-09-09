@@ -372,7 +372,7 @@ classdef MatRad_TopasConfig < handle
                                 
                             else
                                 dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).MeanEnergy;
-                                if ~(0.95 * stf.ray.energy(ixTmp) < selectedData(ixTmp).MeanEnergy && selectedData(ixTmp).MeanEnergy < 1.05 * stf.ray.energy(ixTmp))
+                                if ~(0.95 * stf.ray(ixTmp).energy < selectedData(ixTmp).MeanEnergy && selectedData(ixTmp).MeanEnergy < 1.05 * stf.ray(ixTmp).energy)
                                     dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).NominalEnergy;
                                 end
                                 dataTOPAS(cutNumOfBixel).energySpread = selectedData(ixTmp).EnergySpread;

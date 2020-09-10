@@ -371,12 +371,13 @@ classdef MatRad_TopasConfig < handle
                             if obj.useOrigBaseData
                                 dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).energy;
                                 dataTOPAS(cutNumOfBixel).focusFWHM = selectedData(ixTmp).initFocus.SisFWHMAtIso(stf(beamIx).ray(rayIx).focusIx(bixelIx));
-                                
                             else
-                                dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).MeanEnergy;
-                                if ~(0.95 * bixelEnergy < selectedData(ixTmp).MeanEnergy && selectedData(ixTmp).MeanEnergy < 1.05 * bixelEnergy) || obj.useEnergySpectrum
+                                if ~(0.95 * bixelEnergy < selectedData(ixTmp).MeanEnergy && selectedData(ixTmp).MeanEnergy < 1.05 * bixelEnergy)
                                     dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).NominalEnergy;
-                                end
+                                else
+                                    dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).MeanEnergy;
+                                end                                
+                                dataTOPAS(cutNumOfBixel).NominalEnergy = selectedData(ixTmp).NominalEnergy;
                                 dataTOPAS(cutNumOfBixel).energySpread = selectedData(ixTmp).EnergySpread;
                                 dataTOPAS(cutNumOfBixel).spotSize = selectedData(ixTmp).SpotSize1x;
                                 dataTOPAS(cutNumOfBixel).divergence = selectedData(ixTmp).Divergence1x;
@@ -485,7 +486,7 @@ classdef MatRad_TopasConfig < handle
                     energySpectrum = [baseData.machine.data(:).energySpectrum];
                     nbSpectrumPoints = length(energySpectrum(1).energy_MeVpN);
                     
-                    [~,energyIx] = ismember([dataTOPAS.energy],[baseData.machine.data.energy]);
+                    [~,energyIx] = ismember([dataTOPAS.NominalEnergy],[baseData.machine.data.energy]);
                     
                     fprintf(fileID,'s:So/PencilBeam/BeamEnergySpectrumType = "Continuous"\n');
                     fprintf(fileID,'dv:So/PencilBeam/BeamEnergySpectrumValues = %d %s MeV * Sim/ParticleMass\n',nbSpectrumPoints,strtrim(sprintf('Tf/Beam/EnergySpectrum/Energy/Point%03d/Value ',1:nbSpectrumPoints)));

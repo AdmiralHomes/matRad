@@ -52,25 +52,25 @@ lungIdx = [cst{idx,4}];
 lungIdx = unique(vertcat(lungIdx{:}));
 
 % setting overlaps
-lungIdx = lungIdx(~ismember(lungIdx,tumorIdx));
+%lungIdx = lungIdx(~ismember(lungIdx,tumorIdx));
 
 % calculate ct cube from cubeHU if not specified
 if ~isfield(ct,'cube')
-    ct.cube{1} = ct.cubeHU{1} / 1024 + 1;
+    ct = matRad_calcWaterEqD(ct,pln);
 end
 
 if strcmp(mode, 'binominal')
-    
-    pLung = ct.cube{1}(lungIdx);
-    if sum(pLung > 1)
-        lungIdx = lungIdx(pLung <= 1);
-        pLung = ct.cube{1}(lungIdx);
-    end
      
     %pLung = 0.26;
     %pLung = 0.4;
     rhoLung = 1.05;
     
+    pLung = ct.cube{1}(lungIdx) / rhoLung;
+    if sum(pLung > 1)
+        lungIdx = lungIdx(pLung <= 1);
+        pLung = ct.cube{1}(lungIdx) / rhoLung;
+    end
+
     d = Pmod/1000 ./ (1-pLung) / rhoLung;
     D = ct.resolution.y;
     

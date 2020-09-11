@@ -5,6 +5,8 @@ if nargin < 2
     direction = 'y';
 end
 
+doseCube(isnan(doseCube))=0;
+
 switch direction
     case 'y'
         IDD = sum(sum(doseCube,2),3);

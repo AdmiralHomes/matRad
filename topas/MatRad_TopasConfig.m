@@ -489,7 +489,7 @@ classdef MatRad_TopasConfig < handle
                     [~,energyIx] = ismember([dataTOPAS.NominalEnergy],[baseData.machine.data.energy]);
                     
                     fprintf(fileID,'s:So/PencilBeam/BeamEnergySpectrumType = "Continuous"\n');
-                    fprintf(fileID,'dv:So/PencilBeam/BeamEnergySpectrumValues = %d %s MeV * Sim/ParticleMass\n',nbSpectrumPoints,strtrim(sprintf('Tf/Beam/EnergySpectrum/Energy/Point%03d/Value ',1:nbSpectrumPoints)));
+                    fprintf(fileID,'dv:So/PencilBeam/BeamEnergySpectrumValues = %d %s MeV\n',nbSpectrumPoints,strtrim(sprintf('Tf/Beam/EnergySpectrum/Energy/Point%03d/Value ',1:nbSpectrumPoints)));
                     fprintf(fileID,'uv:So/PencilBeam/BeamEnergySpectrumWeights = %d %s\n',nbSpectrumPoints,strtrim(sprintf('Tf/Beam/EnergySpectrum/Weight/Point%03d/Value ',1:nbSpectrumPoints)));
                     points_energy = reshape([energySpectrum(energyIx).energy_MeVpN],[],length(energyIx));
                     points_weight = reshape([energySpectrum(energyIx).weight],[],length(energyIx));

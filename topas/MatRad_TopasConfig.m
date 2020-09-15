@@ -299,7 +299,7 @@ classdef MatRad_TopasConfig < handle
             switch obj.modeHistories
                 case 'num'
                     obj.fracHistories = obj.numHistories ./ sum(nParticlesTotalBixel);
-                   case 'frac'
+                case 'frac'
                     obj.numHistories = sum(nParticlesTotalBixel);
                 otherwise
                     obj.matRad_cfg.dispError('Invalid history setting!');
@@ -373,10 +373,9 @@ classdef MatRad_TopasConfig < handle
                                 dataTOPAS(cutNumOfBixel).focusFWHM = selectedData(ixTmp).initFocus.SisFWHMAtIso(stf(beamIx).ray(rayIx).focusIx(bixelIx));
                             else
                                 if ~(0.95 * bixelEnergy < selectedData(ixTmp).MeanEnergy && selectedData(ixTmp).MeanEnergy < 1.05 * bixelEnergy)
-                                    dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).NominalEnergy;
-                                else
-                                    dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).MeanEnergy;
-                                end                                
+                                    obj.matRad_cfg.dispWarning('Mean energy differs significantly from nominal energy!');
+                                end
+                                dataTOPAS(cutNumOfBixel).energy = selectedData(ixTmp).MeanEnergy;                          
                                 dataTOPAS(cutNumOfBixel).NominalEnergy = selectedData(ixTmp).NominalEnergy;
                                 dataTOPAS(cutNumOfBixel).energySpread = selectedData(ixTmp).EnergySpread;
                                 dataTOPAS(cutNumOfBixel).spotSize = selectedData(ixTmp).SpotSize1x;

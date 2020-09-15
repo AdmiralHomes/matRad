@@ -23,6 +23,11 @@ function stf = matRad_generateStfPencilBeam(pln,energyIx)
 % LICENSE file.
 %
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+global matRad_cfg;
+matRad_cfg = MatRad_Config.instance();
+
+matRad_cfg.dispInfo('matRad: Generating stf struct... ');
+
 load([pln.radiationMode,'_',pln.machine]);
 
 SAD = machine.meta.SAD;
@@ -40,8 +45,8 @@ stf.numOfRays = 1;
 stf.numOfBixelsPerRay = 1;
 stf.totalNumOfBixels = 1;
 
-stf.soucePoint_bev = [0,-SAD,0];
-stf.soucePoint = [0,-SAD,0];
+stf.sourcePoint_bev = [0,-SAD,0];
+stf.sourcePoint = [0,-SAD,0];
 
 % generate ray
 stf.ray.energy = machine.data(energyIx).energy;

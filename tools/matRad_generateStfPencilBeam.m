@@ -23,10 +23,10 @@ function stf = matRad_generateStfPencilBeam(pln,energyIx)
 % LICENSE file.
 %
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-global matRad_cfg;
-matRad_cfg = MatRad_Config.instance();
+% global matRad_cfg;
+% matRad_cfg = MatRad_Config.instance();
 
-matRad_cfg.dispInfo('matRad: Generating stf struct... ');
+% matRad_cfg.dispInfo('matRad: Generating stf struct...\n');
 
 load([pln.radiationMode,'_',pln.machine]);
 
@@ -48,6 +48,9 @@ stf.totalNumOfBixels = 1;
 stf.sourcePoint_bev = [0,-SAD,0];
 stf.sourcePoint = [0,-SAD,0];
 
+% get roation matrix for gantry and couch angles unequal to 0
+rotMat_vectors_T = transpose(matRad_getRotationMatrix(pln.propStf.gantryAngles,pln.propStf.couchAngles));
+
 % generate ray
 stf.ray.energy = machine.data(energyIx).energy;
 stf.ray.focusIx = find(machine.data(energyIx).initFocus.SisFWHMAtIso > currentMinimumFWHM,1,'first');
@@ -58,7 +61,7 @@ stf.ray.rangeShifter.sourceRashiDistance = 0;
 
 stf.ray.rayPos_bev = [0,0,0];
 stf.ray.targetPoint_bev = [0,SAD,0];
-stf.ray.rayPos = [0,0,0];
-stf.ray.targetPoint = [0,SAD,0];
+stf.ray.rayPos = stf.ray.rayPos_bev*rotMat_vectors_T;
+stf.ray.targetPoint = stf.ray.targetPoint_bev*rotMat_vectors_T;
 
 end

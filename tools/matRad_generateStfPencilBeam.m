@@ -23,15 +23,18 @@ function stf = matRad_generateStfPencilBeam(pln,energyIx)
 % LICENSE file.
 %
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% global matRad_cfg;
-% matRad_cfg = MatRad_Config.instance();
+global matRad_cfg;
+matRad_cfg = MatRad_Config.instance();
 
-% matRad_cfg.dispInfo('matRad: Generating stf struct...\n');
+matRad_cfg.dispInfo('matRad: Generating stf struct...\n');
 
 load([pln.radiationMode,'_',pln.machine]);
 
 SAD = machine.meta.SAD;
 currentMinimumFWHM = matRad_interp1(machine.meta.LUT_bxWidthminFWHM(1,:)', machine.meta.LUT_bxWidthminFWHM(2,:)',pln.propStf.bixelWidth);
+
+% get roation matrix for gantry and couch angles unequal to 0
+rotMat_vectors_T = transpose(matRad_getRotationMatrix(pln.propStf.gantryAngles,pln.propStf.couchAngles));
 
 % generate stf parameters
 stf.gantryAngle = pln.propStf.gantryAngles;
@@ -46,10 +49,7 @@ stf.numOfBixelsPerRay = 1;
 stf.totalNumOfBixels = 1;
 
 stf.sourcePoint_bev = [0,-SAD,0];
-stf.sourcePoint = [0,-SAD,0];
-
-% get roation matrix for gantry and couch angles unequal to 0
-rotMat_vectors_T = transpose(matRad_getRotationMatrix(pln.propStf.gantryAngles,pln.propStf.couchAngles));
+stf.sourcePoint = stf.sourcePoint_bev*rotMat_vectors_T;
 
 % generate ray
 stf.ray.energy = machine.data(energyIx).energy;

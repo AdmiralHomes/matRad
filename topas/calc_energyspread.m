@@ -1,57 +1,120 @@
 %% for 3 energies niedrig mittel und high energy
-%clear
+clear
 matRad_rc
 pln.radiationMode   = 'carbon';     % either photons / protons / carbon
+% pln.machine         = 'HITfixedBL';
 pln.machine         = 'HITgantry';
+% pln.machine         = 'HITgenericRIFI3MMTOPAS_Water_forNiklas';
 load([pln.radiationMode,'_',pln.machine]);
-load BOXPHANTOM_LUNG.mat
+load BOXPHANTOM_ALLWATER.mat
 
 cd A:\matRad_Noa\topas\energyspreadHIT
 
-energy = [machine.data(67).energy, ...
-    machine.data(190).energy];
+energySelect = 1:40:length([machine.data.energy]);
+energySelect = energySelect(4);
+energy = [machine.data(energySelect).energy];
+weight = 1;
 
-energySpread = [0, 1.5, 3];
-%%
-% for i = energy
-%     for j = energySpread
-%         if ~isfile(['energySpread_',num2str(j),'_',num2str(round(i)),'.mat'])
-%             [resultGUI,resultGUI_MC] = matRad_calcMC(ct,cst,pln,i,j);
-%             cd A:\matRad_Noa\topas\energyspreadHIT
-%             save(['energySpread_',num2str(10*j),'_',num2str(round(i)),'.mat'],'resultGUI*')
-%             clear resultGUI*
+% ct.resolution.x = 1;
+% ct.resolution.y = 1;
+% ct.resolution.z = 1;
+% ct.cubeDim = [360,360,360];
+% ct.cubeHU{1} = ones(ct.cubeDim) * ct.cubeHU{1}(1);
+% ct.cube{1} = ones(ct.cubeDim) * ct.cube{1}(1);
+% cst{1,4}{1,1} = [1:prod(ct.cubeDim)]';
+% cst{2,4}{1,1} = [];
+% 
+% idx = zeros(360,360,360);
+% for i = 160:200
+%     for j = 160:200
+%         for k = 160:200
+%             idx(i,j,k) = 1;
 %         end
 %     end
 % end
-% 
+% cst{2,4}{1,1} = find(idx == 1);
+
+
+%%
+for i = energySelect
+    if ~isfile(['energy_',num2str(i,'%03d'),'_vacuum.mat'])
+        [resultGUI,resultGUI_MC] = matRad_calcMC(ct,cst,pln,i,weight);
+        cd A:\matRad_Noa\topas\energyspreadHIT
+        save(['energy_',num2str(i,'%03d'),'_vacuum.mat'],'resultGUI*')
+        clear resultGUI*
+    end
+end
+%%
+for i = energySelect
+    if ~isfile(['energy_',num2str(i,'%03d'),'_air.mat'])
+        [resultGUI,resultGUI_MC] = matRad_calcMC(ct,cst,pln,i,weight);
+        cd A:\matRad_Noa\topas\energyspreadHIT
+        save(['energy_',num2str(i,'%03d'),'_air.mat'],'resultGUI*')
+        clear resultGUI*
+    end
+end
 % pause(10)
 % system('shutdown -s')
 %%
+
+% files = dir('*.mat');
 % 
-for j = 1:length(energySpread)
-    for i = 1:length(energy)
-        load(['energySpread_',num2str(10*energySpread(j)),'_',num2str(round(energy(i))),'.mat'],'resultGUI*')
-        
-        matRadDose{j,i} = matRad_calcIDD(resultGUI.physicalDose,'y');
-        TopasDose{j,i} = matRad_calcIDD(resultGUI_MC.physicalDose,'y');
-    end
-end
+% figure, hold on
+% for i = 1:numel(files)
+%     load(files(i).name,'resultGUI*')
+%     j = str2num(files(i).name(8:end-4));
+%     plot(matRad_calcIDD(resultGUI.physicalDose,'y'),'DisplayName','matRad')
+%     txt = ['Energy = ',num2str(machine.data(j).energy)];
+%     plot(matRad_calcIDD(resultGUI_MC.physicalDose,'y'),'DisplayName',txt)
+% end
+% legend show
+% xlim([0 120])
+% xlabel('depths [mm]')
+% ylabel('dose')
 
 %%
 
-for i = 1:length(energy)
-    figure
-    plot(matRadDose{j,i},'DisplayName','matRad')
-    hold on
-    for j = 1:length(energySpread)
-        txt = ['EnergySpread = ',num2str(energySpread(j))];
-        plot(TopasDose{j,i},'DisplayName',txt)
-    end
-    legend show
-    title(['Energy = ',num2str(energy(i))])
+files = dir('*.mat');
+
+f = figure, hold on
+for i = 1:2:numel(files)
+    load(files(i).name,'resultGUI*')
+    j = str2num(files(i).name(8:10));
+    plot(matRad_calcIDD(resultGUI.physicalDose,'y'),'DisplayName','matRad','Color',matRad_getDefaultColor((i+1)/2),'LineWidth',1)
+    txt = ['Energy = ',num2str(machine.data(j).energy),' air'];
+    plot(matRad_calcIDD(resultGUI_MC.physicalDose,'y'),'-.','DisplayName',txt,'Color',matRad_getDefaultColor((i+1)/2),'LineWidth',1)
+    
+    load(files(i+1).name,'resultGUI*')
+    txt2 = ['Energy = ',num2str(machine.data(j).energy),' vacuum'];
+    plot(matRad_calcIDD(resultGUI_MC.physicalDose,'y'),'--','DisplayName',txt2,'Color',matRad_getDefaultColor((i+1)/2),'LineWidth',1)
 end
+legend show
+xlim([0 120])
+xlabel('depths [mm]')
+ylabel('dose')
+ylim([0 4])
+title([pln.radiationMode,' ',pln.machine])
+%%
+i = 160;
+figure, plot(machine.data(i).weight), hold on, plot(machine.data(i+1).weight)
+
+
 
 %%
+% resolutions = [1 3 5];
+resolutions = [3 6];
+figure
+for i = resolutions
+   load(['doseGrid',num2str(i),'.mat']) 
+   plot(matRad_calcIDD(resultGUI.physicalDose,'y'),'--'), hold on, 
+   plot(matRad_calcIDD(resultGUI_MC.physicalDose,'y'))
+end
+ylim([0 1])
+legend({'1','2','3','4'})
+
+
+
+
 % alpha = 0.022;
 % p = 1.77;
 % A = 12;

@@ -89,7 +89,9 @@ end
         
 
 if ~calcDoseDirect
-    matRad_cfg.dispError('matRad so far only supports direct dose calculation for TOPAS!\n');
+    %     matRad_cfg.dispError('matRad so far only supports direct dose calculation for TOPAS!\n');
+    matRad_cfg.dispWarning('You have selected TOPAS dij calculation, this may take a while ^^');
+    pln.propMC.calcDij = 1;
 end
 
 if isfield(pln.propStf,'useRangeShifter') 
@@ -121,19 +123,25 @@ load([pln.radiationMode,'_',pln.machine]);
 topasBaseData = MatRad_TopasBaseData(machine,stf);%,TopasConfig);
 
 %Collect weights
-w = zeros(sum([stf(:).totalNumOfBixels]),1);
-ct = 1;
-for i = 1:length(stf)
-    for j = 1:stf(i).numOfRays
-        rayBix = stf(i).numOfBixelsPerRay(j);
-        w(ct:ct+rayBix-1) = stf(i).ray(j).weight;
-        ct = ct + rayBix;
+if calcDoseDirect
+    w = zeros(sum([stf(:).totalNumOfBixels]),1);
+    counter = 1;
+    for i = 1:length(stf)
+        for j = 1:stf(i).numOfRays
+            rayBix = stf(i).numOfBixelsPerRay(j);
+            w(counter:counter+rayBix-1) = stf(i).ray(j).weight;
+            counter = counter + rayBix;
+        end
     end
 end
 
 topasConfig.numHistories = nCasePerBixel;
 topasConfig.numOfRuns = matRad_cfg.propMC.topas_defaultNumBatches;
-topasConfig.writeAllFiles(ctResampled,pln,stf,topasBaseData,w);
+if calcDoseDirect
+    topasConfig.writeAllFiles(ctResampled,pln,stf,topasBaseData,w);
+else
+    topasConfig.writeAllFiles(ctResampled,pln,stf,topasBaseData);
+end
 
 %topasConfig.parallelRuns = true;
 %topasConfig.numThreads = 20 / topasConfig.numOfRuns;
@@ -174,10 +182,25 @@ end
 cd(currDir);
 
 %% read out volume scorers from topas simulation
-topasCubes = matRad_readTopasData(topasConfig.workingDir);
+if calcDoseDirect
+    topasCubes = matRad_readTopasData(topasConfig.workingDir);
+else
+    topasCubes = matRad_readTopasData(topasConfig.workingDir,dij);
+end
 
 fnames = fieldnames(topasCubes);
 dij.MC_tallies = fnames;
-for f = 1:numel(fnames)
-    dij.(fnames{f}){1} = topasCubes.(fnames{f});    
+
+if calcDoseDirect
+    for f = 1:numel(fnames)
+        dij.(fnames{f}){1} = topasCubes.(fnames{f});
+    end
+else
+    for f = 1:numel(fnames)
+        for d = 1:stf(f).totalNumOfBixels
+            dij.physicalDose{1}(:,d) = reshape(topasCubes.(fnames{f}){d},[],1);
+        end
+    end
+end
+                    
 end

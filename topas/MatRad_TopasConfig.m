@@ -60,6 +60,7 @@ classdef MatRad_TopasConfig < handle
                 
         %Scoring
         addVolumeScorers = true
+        scoreDij = false;
         scoreDose = true;
         scoreTrackCount = false;
         %scoreLET = true;
@@ -137,7 +138,9 @@ classdef MatRad_TopasConfig < handle
             obj.MCparam.nbRuns = obj.numOfRuns;
             obj.MCparam.simLabel = obj.label;
             
-                        
+            if isfield(pln.propMC,'calcDij') && pln.propMC.calcDij
+                obj.scoreDij = true;
+            end            
             if ~exist(obj.workingDir,'dir')
                 mkdir(obj.workingDir);
                 matRad_cfg.dispInfo('Created TOPAS working directory %s\n',obj.workingDir);
@@ -148,6 +151,10 @@ classdef MatRad_TopasConfig < handle
             matRad_cfg.dispInfo('Writing parameter files to %s\n',obj.workingDir);
 
             obj.writePatient(ct,pln);
+            if ~exist('w','var')
+                numBixels = sum([stf(:).totalNumOfBixels]);
+                w = ones(numBixels,1);
+            end
             obj.writeStfFields(ct,stf,topasBaseData,w);                       
 
             matRad_cfg.dispInfo('Successfully written TOPAS setup files!\n')
@@ -362,7 +369,13 @@ classdef MatRad_TopasConfig < handle
                             dataTOPAS(cutNumOfBixel).posX = -1.*voxel_x;
                             dataTOPAS(cutNumOfBixel).posY = voxel_y;
                             
-                            dataTOPAS(cutNumOfBixel).current = uint32(obj.fracHistories*nCurrentParticles / obj.numOfRuns);
+                            if obj.scoreDij
+                                % write particles directly to every beamlet for dij calculation (each bixel
+                                % calculated separately with full numParticles
+                                dataTOPAS(cutNumOfBixel).current = uint32(nCurrentParticles / obj.numOfRuns);
+                            else
+                                dataTOPAS(cutNumOfBixel).current = uint32(obj.fracHistories*nCurrentParticles / obj.numOfRuns);
+                            end
  
                             if obj.pencilBeamScanning
                                 % angleX corresponds to the rotation around the X axis necessary to move the spot in the Y direction
@@ -385,6 +398,14 @@ classdef MatRad_TopasConfig < handle
                                 dataTOPAS(cutNumOfBixel).divergence = selectedData(ixTmp).Divergence1x;
                                 dataTOPAS(cutNumOfBixel).correlation = selectedData(ixTmp).Correlation1x;
                                 dataTOPAS(cutNumOfBixel).focusFWHM = selectedData(ixTmp).FWHMatIso;
+                            end
+                            
+                            if obj.scoreDij
+                                % remember beam and bixel number
+                                dataTOPAS(cutNumOfBixel).beam           = beamIx;
+                                dataTOPAS(cutNumOfBixel).ray            = rayIx;
+                                dataTOPAS(cutNumOfBixel).bixel          = bixelIx;
+                                dataTOPAS(cutNumOfBixel).totalBixel     = currentBixel;
                             end
                             
                             %Add RangeShifterState
@@ -416,7 +437,11 @@ classdef MatRad_TopasConfig < handle
                 dataTOPAS(idx) = [];
                 cutNumOfBixel = length(dataTOPAS(:));
                 
-                historyCount(beamIx) = uint32(obj.fracHistories * nBeamParticlesTotal(beamIx) / obj.numOfRuns);
+                                if obj.scoreDij
+                    historyCount(beamIx) =0.000001* uint32(nBeamParticlesTotal(beamIx) / obj.numOfRuns);
+                else
+                    historyCount(beamIx) = uint32(obj.fracHistories * nBeamParticlesTotal(beamIx) / obj.numOfRuns);
+                end
                 
                 if historyCount < cutNumOfBixel || cutNumOfBixel == 0
                     matRad_cfg.dispError('Insufficient number of histories!')
@@ -631,6 +656,14 @@ classdef MatRad_TopasConfig < handle
                     fprintf(fileID,['i:Ts/Seed = ',num2str(runIx),'\n']);
                     fprintf(fileID,'includeFile = ./%s\n',fieldSetupFileName);
                     obj.writeScorers(fileID);
+                                       if obj.scoreDij
+                        fprintf(fileID,'s:Tf/ImageName/Function = "Step"\n');
+                        % create time feature scorer and save with original rays and bixel names
+                        imageName = ['sv:Tf/ImageName/Values = ',num2str(cutNumOfBixel),strcat(' "ray',string([dataTOPAS.ray]))+strcat('_bixel',string([dataTOPAS.bixel]),'"')];
+                        fprintf(fileID,'%s\n',strjoin(imageName));
+                        fprintf(fileID,'dv:Tf/ImageName/Times = Tf/Beam/Spot/Times ms\n');
+                        fprintf(fileID,'s:Sc/Patient/Tally_DoseToMedium/SplitByTimeFeature = "ImageName"');
+                    end
                     fclose(fileID);
                 end                                
             end
